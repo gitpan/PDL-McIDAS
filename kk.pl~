@@ -1,9 +1,0 @@
-#!/usr/bin/perl -w
-
-use PDL;
-use PDL::Graphics::PGPLOT;
-
-dev('/xserve');
-$x=pdl[1,2,3,4];
-$y=[4,3,2,7];
-points($x,$y);
