@@ -1,0 +1,26 @@
+Copyright (c) 2003 Xavier Calbet and Javier Garcia-Pereda 
+(xcalbet@yahoo.es, javierpereda@yahoo.com).  All
+rights reserved. This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+PDL::McIDAS allows you to read into PDL the McIDAS GRID files. There
+is also a function to plot RGB images.
+
+Prerequisites - You need to have the perl PDL module installed.
+http://pdl.perl.org
+
+Build and Install:
+
+$ zcat PDL-McIDAS-xx.tar.gz | tar xf -
+$ cd PDL-McIDAS-xx
+$ perl Makefile.pl
+$ make
+$ make test
+$ make install
+
+Changes / enhancements you plan to make in the future:
+
+Read McIDAS IMAGES into PDL.
+
+In the more distant future: plot images and grids together
+with the same projection.

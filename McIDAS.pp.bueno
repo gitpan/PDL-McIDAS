@@ -1,0 +1,271 @@
+$VERSION = '0.1';
+
+#-----------------------------------------------------------------------------------
+
+
+pp_def	('h_grdlist',
+	Pars => '[o]level(3000);[o]rows(3000);[o]columns(3000);'.
+		'[o]year(3000);[o]day(3000);[o]hour(3000);[o]validity(3000);'.
+		'[o]num_grid(3000);[o]maptype(3000);'.
+	         '[o]proj_34(3000);[o]proj_35(3000);[o]proj_36(3000);'.
+	         '[o]proj_37(3000);[o]proj_38(3000);[o]proj_39(3000);'.
+		'[o]num_grids();byte file(256,1);'.
+		'byte [o]gridname(4,3000);'.
+		'byte [o]levelunits(4,3000);byte [o]gridorigin(4,3000);',
+	#Pars => '[o]level(3000);[o]rows(3000);[o]columns(3000);'.
+	#	'[o]year(3000);[o]day(3000);[o]hour(3000);'.
+	#	'[o]validity(3000);[o]num_grid(3000);[o]num_grids();'.
+	#	'byte file(1,256);byte [o]gridname(3000,4);'.
+	#	'byte [o]levelunits(3000,4);byte [o]maptype(3000,4);',
+	GenericTypes => [L],
+	 Code => 'h_grdlist($P(level),$P(rows),$P(columns),'.
+	         '$P(year),$P(day),$P(hour),$P(validity),'.
+		 '$P(num_grid),$P(maptype),'.
+	         '$P(proj_34),$P(proj_35),$P(proj_36),'.
+	         '$P(proj_37),$P(proj_38),$P(proj_39),'.
+	         '$P(num_grids),$P(file),'.
+		'$P(gridname),$P(levelunits),$P(gridorigin));',
+	Doc  => <<'EOD');
+Lists the grid headers of the McIDAS grid file defined in grid_file.
+
+Inputs:
+	grid_file -- Name of the grid file to use
+Outputs:
+	sflat, sflon -- sun-fixed latitude and longitude in degrees
+EOD
+
+#-----------------------------------------------------------------------------------
+
+pp_def	('h_grd2pdl',
+	  Pars => '[o]data(elements); num_grid(); byte file(256,1);',
+	  GenericTypes => [L],
+	  Code => 'long int n_els; n_els=$SIZE(elements);'.
+	  'grd2pdl(n_els, $P(file), $P(num_grid),$P(data) );',
+	  Doc  => <<'EOD');
+Copies a given grid from a McIDAS grid file to a pdl matrix.
+EOD
+
+#-----------------------------------------------------------------------------------
+
+
+pp_addpm({At => Top}, <<'EOD');
+=head1 NAME
+
+PDL::IO::McIDAS -- PDL interface to Doug Hunt's utility routines. Used at UCAR for
+the GPS/MET and COSMIC projects.
+
+=head1 SYNOPSIS
+
+  use PDL;
+  use Dutil;
+
+  my ($date, $lat, $lon) = (1997020223000, 40.0, -105.0);
+
+  my ($sflat, $sflon) = Dutil::sflatlon ($date, $lat, $lon);
+
+  my ($lat1, $lon1 $lat2, $lon2) = (40.0, -105.0, 60.0, -130.0);
+
+  my ($distance_km) = Dutil::greatcirc($lat1, $lon1, $lat2, $lon2);
+  my ($integral)    = Dutil::trapezoid($x, $y); # where y = f(x)
+  my ($lreg, $c0, $c1) = Dutil::lreg ($x, $y);	
+  my ($lreg, $c1)   = Dutil::lregslope ($x, $y);	
+
+=head1 DESCRIPTION 
+
+required for pod2man
+
+=head1 AUTHOR
+
+	Xavier Calbet    y Javier Garcia-Pereda 
+        (xcalbet@yahoo.es, javierpereda@yahoo.com)
+
+=cut
+
+#'
+
+sub grdlist {
+    
+    use PDL::Char;
+    
+    ($file)=@_;
+    
+    $pfile=PDL::Char->new(zeroes(byte,256,1));
+    $pfile->setstr(0,$file);
+    $gridname=zeroes(byte,4,3000);
+    $levelunits=zeroes(byte,4,3000);
+    $gridorigin=zeroes(byte,4,3000);
+    
+    $level=zeroes(long,3000);
+    $rows=zeroes(long,3000);
+    $columns=zeroes(long,3000);
+    $year=zeroes(long,3000);
+    $day=zeroes(long,3000);
+    $hour=zeroes(long,3000);
+    $validity=zeroes(long,3000);
+    $num_grid=zeroes(long,3000);
+    $maptype=zeroes(long,3000);
+    $proj_34=zeroes(long,3000);
+    $proj_35=zeroes(long,3000);
+    $proj_36=zeroes(long,3000);
+    $proj_37=zeroes(long,3000);
+    $proj_38=zeroes(long,3000);
+    $proj_39=zeroes(long,3000);
+    $num_grids=pdl(long,0);
+    
+    h_grdlist($level,$rows,$columns,$year,$day,$hour,$validity,
+	      $num_grid,$maptype,$proj_34,$proj_35,$proj_36,
+	      $proj_37,$proj_38,$proj_39,
+	      $num_grids,$pfile,$gridname,
+	      $levelunits,$gridorigin);
+
+
+    # Reducing the dimensionality to save memory
+    $ngridname=PDL::copy($gridname->slice(':,0:'.($num_grids-1)));
+    $gridname=null;
+    $nlevelunits=PDL::copy($levelunits->slice(':,0:'.($num_grids-1)));
+    $levelunits=null;
+    $ngridorigin=PDL::copy($gridorigin->slice(':,0:'.($num_grids-1)));
+    $gridorigin=null;
+    $nlevel=PDL::copy($level->slice('0:'.($num_grids-1)));
+    $level=null;
+    $nrows=PDL::copy($rows->slice('0:'.($num_grids-1)));
+    $rows=null;
+    $ncolumns=PDL::copy($columns->slice('0:'.($num_grids-1)));
+    $columns=null;
+    $nyear=PDL::copy($year->slice('0:'.($num_grids-1)));
+    $year=null;
+    $nday=PDL::copy($day->slice('0:'.($num_grids-1)));
+    $day=null;
+    $nhour=PDL::copy($hour->slice('0:'.($num_grids-1)));
+    $hour=null;
+    $nvalidity=PDL::copy($validity->slice('0:'.($num_grids-1)));
+    $validity=null;
+    $nnum_grid=PDL::copy($num_grid->slice('0:'.($num_grids-1)));
+    $num_grid=null;
+    $nmaptype=PDL::copy($maptype->slice('0:'.($num_grids-1)));
+    $maptype=null;
+    $nproj_34=PDL::copy($proj_34->slice('0:'.($num_grids-1)));
+    $proj_34=null;
+    $nproj_35=PDL::copy($proj_35->slice('0:'.($num_grids-1)));
+    $proj_35=null;
+    $nproj_36=PDL::copy($proj_36->slice('0:'.($num_grids-1)));
+    $proj_36=null;
+    $nproj_37=PDL::copy($proj_37->slice('0:'.($num_grids-1)));
+    $proj_37=null;
+    $nproj_38=PDL::copy($proj_38->slice('0:'.($num_grids-1)));
+    $proj_38=null;
+    $nproj_39=PDL::copy($proj_39->slice('0:'.($num_grids-1)));
+    $proj_39=null;
+
+    
+    return ($nlevel,$nrows,$ncolumns,$nyear,$nday,$nhour,$nvalidity,
+	    $nnum_grid,$nmaptype,$nproj_34,$nproj_35,$nproj_36,
+	    $nproj_37,$nproj_38,$nproj_39,
+	    $num_grids,$pfile,$ngridname,
+	    $nlevelunits,$ngridorigin);
+    
+}
+
+
+sub grd2pdl {
+    
+    use PDL::Char;
+    
+    ($file,$snum_grid)=@_;
+    
+    $pfile=PDL::Char->new(zeroes(byte,256,1));
+    $pfile->setstr(0,$file);
+
+    $pnum_grid=pdl(long,$snum_grid);
+
+    ($level,$rows,$columns,$year,$day,$hour,$validity,
+     $num_grid,$maptype,$proj_34,$proj_35,$proj_36,
+     $proj_37,$proj_38,$proj_39,$num_grids,$pfile,$gridname,
+     $levelunits,$gridorigin)=grdlist($file);
+
+    $srows=at($rows,$snum_grid);
+    $scols=at($columns,$snum_grid);
+
+    $elements=$srows*$scols;
+
+    $data=zeroes(long,$elements);
+
+    h_grd2pdl($data,$pnum_grid,$pfile);
+    
+    $odata=$data->reshape($srows,$scols);
+
+    return ($odata);
+    
+}
+
+sub mcimagrgb {
+    
+    use strict;
+    use PDL::ImageRGB;
+    use PDL::Graphics::PGPLOT;
+
+
+    my ($ir,$ig,$ib,$rh)=@_;
+
+    my ($lo,$hi);
+    my ($oldlo,$oldhi);
+    my ($nlevelm1,$imag,$nimag);
+    my ($out,$lut);
+    my ($r,$g,$b);
+    my ($levels);
+    my ($i,@cr,@cg,@cb);
+
+    # Remembering old colors to restore them
+    #pgqcir($oldlo,$oldhi);
+    #print "oldlo $oldlo $oldhi\n";
+    #for ($i=0;$i<$oldlo;$i++) {
+    #	pgqcr($i,$cr[$i],$cg[$i],$cb[$i]);
+    #}
+    #for ($i=0;$i<$oldlo;$i++) {
+    #	print "color $i $cr[$i]  $cg[$i]  $cb[$i]\n";
+    #}
+
+
+    #pgqcol($lo,$hi);
+    pgqcir($lo,$hi);
+    #print "hi $hi lo $lo\n";
+    if ($hi == 0 && $lo == 0) {
+	barf("No PGPLOT device has been called\n");
+    }
+    
+    $nlevelm1=($hi-$lo)*1.;
+    $imag=cat($ir,$ig,$ib)->xchg(0,2)->xchg(1,2);
+    $nimag=byte(
+	      PDL::copy((($imag-min($imag))/
+			 (max($imag)-min($imag))*($nlevelm1))));
+    
+    ($out,$lut)=cquant($nimag,$nlevelm1+1);
+    $out=$out/$nlevelm1;
+    #print "out $out\n";
+    
+    $lut=$lut/$nlevelm1;
+    $r=$lut->slice('(0),:');
+    $g=$lut->slice('(1),:');
+    $b=$lut->slice('(2),:');
+    
+    $levels=sequence(float,($nlevelm1+1))/$nlevelm1;
+    
+
+
+    #pgscir($lo,$lo+$nlevelm1);
+    ctab($levels,$r,$g,$b);
+
+    imag($out,0,1,$rh);
+
+    # Restoring old colors
+    #for ($i=0;$i<$oldlo;$i++) {
+    #	pgscr($i,$cr[$i],$cg[$i],$cb[$i]);
+    #}
+    #pgscir($oldlo,$oldhi);
+}
+
+
+
+EOD
+
+pp_done();

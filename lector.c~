@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "l_grdlist.h"
+
+//void l_grdlist(int * dato, long int matriz[PARAMETERS][GRIDS]);
+void l_grdlist(long int header[PARAMETERS][GRIDS]);
+
+
+
+int main(int argc, char* argv[]) { 
+  int i,n;
+  long int fake[PARAMETERS][GRIDS];
+  long int matriz[PARAMETERS][GRIDS];
+
+  //matriz=(long int **)malloc((unsigned) PARAMETERS*sizeof(long int *));
+  //if (!matriz) {
+  //  printf("Allocation failure 1 in matriz of McIDAS\n");
+  //  exit(1);
+  //}
+  //
+  //for (n=0;n<PARAMETERS;n++) {
+  //  matriz[n]=(long int *)malloc((unsigned) GRIDS*sizeof(long int));
+  //  if (!matriz[n]) {
+  //	printf("Allocation failure 2 in matriz of McIDAS\n");
+  //	exit(1);
+  //  }
+  //}
+  
+    printf("matriz %d\n",matriz);
+
+
+  //if (argc == 2) { 
+    l_grdlist(matriz);
+    printf("matriz %d\n",matriz);
+  /*  Encabezamiento de cada GRID;
+      Se mostraran los parametros clave de los Grids del archivo */
+    printf("PARAM  LEVEL    DAY     TIME  FHOUR GRID PROJ\n");
+    printf("----- ------- -------- ------ ----- ---- ----\n");   
+
+    for (i = 0; i < 10; i++) { 
+      //printf("i %d\n",i);
+      printf("%4ld  %4ld %2ld ", matriz[0][i], matriz[1][i], matriz[2][i]);
+      printf("%4ld %3ld %6ld  ", matriz[3][i], matriz[4][i], matriz[5][i]);
+      printf("%3ld  %4ld %4ld\n", matriz[6][i], matriz[7][i], matriz[8][i]);  
+    }
+    //}
+
+
+  exit(0);
+
+}
+
+
+
+
+
